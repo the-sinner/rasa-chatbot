@@ -11,3 +11,14 @@ rules:
   steps:
   - intent: bot_challenge
   - action: utter_iamabot
+
+- rule: show hotels
+  steps:
+  - intent: hotels
+  - action: action_show_hotels
+
+- rule: show detail
+  steps:
+  - intent: detail
+  - action: action_hotels_detail
+  
