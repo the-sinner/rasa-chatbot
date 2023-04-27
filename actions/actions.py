@@ -26,6 +26,9 @@
 #
 #         return []
 
+import ast
+import openai 
+import tiktoken
 import os
 from typing import Any, Text, Dict, List
 import pandas as pd
@@ -35,16 +38,20 @@ from rasa_sdk.executor import CollectingDispatcher
 from rasa_sdk.events import SlotSet
 from scipy import spatial  # for calculating vector similarities for search
 
+# models
+EMBEDDING_MODEL = "text-embedding-ada-002"
+GPT_MODEL = "gpt-3.5-turbo"
+
 class HotelAPI(object):
 
     def __init__(self):
-        self.db = pd.read_csv("model/new_delhi_hotels.csv")
-        self.df['embedding'] = self.df['embedding'].apply(ast.literal_eval)
+        self.db = pd.read_csv("hotels-data/new_delhi_hotels.csv")
+        self.db['embedding'] = self.db['embedding'].apply(ast.literal_eval)
 
     def fetch_hotels(self):
         return self.db.head()
 
-    def format_restaurants(self, df, header=True) -> Text:        
+    def format_hotels(self, df, header=True) -> Text:        
         data = {'hotels': ['Ashok Hotel', 'Ginger Hotel', 'The Lalit']}
         data = {
             'hotels': ['Ashok Hotel', 'Ginger Hotel', 'The Lalit'],
@@ -71,7 +78,7 @@ class ChatGPT(object):
     
 
     # search function
-    def strings_ranked_by_relatedness(
+    def strings_ranked_by_relatedness(self,
         query: str,
         df: pd.DataFrame,
         relatedness_fn=lambda x, y: 1 - spatial.distance.cosine(x, y),
@@ -94,20 +101,20 @@ class ChatGPT(object):
 
 
 
-    def num_tokens(text: str, model: str = GPT_MODEL) -> int:
+    def num_tokens(self, text: str, model: str = GPT_MODEL) -> int:
         """Return the number of tokens in a string."""
         encoding = tiktoken.encoding_for_model(model)
         return len(encoding.encode(text))
 
 
-    def query_message(
+    def query_message(self,
         query: str,
         df: pd.DataFrame,
         model: str,
         token_budget: int
     ) -> str:
         """Return a message for GPT, with relevant source texts pulled from a dataframe."""
-        strings, relatednesses = strings_ranked_by_relatedness(query, df)
+        strings, relatednesses = self.strings_ranked_by_relatedness(query, df)
         # introduction = 'Use the below articles on the 2022 Winter Olympics to answer the subsequent question. If the answer cannot be found in the articles, write "I could not find an answer."'
         introduction = self.prompt
         question = f"\n\nQuestion: {query}"
@@ -116,7 +123,7 @@ class ChatGPT(object):
             # next_article = f'\n\nWikipedia article section:\n"""\n{string}\n"""'
             next_review = f'\n\n{string}\n'
             if (
-                num_tokens(message + question, model=model)
+                self.num_tokens(message + question, model=model)
                 > token_budget
             ):
                 break
@@ -125,15 +132,15 @@ class ChatGPT(object):
         return message + question
 
 
-    def ask(
+    def ask(self,
         query: str,
-        df: pd.DataFrame = df,
+        df: pd.DataFrame,
         model: str = GPT_MODEL,
         token_budget: int = 4096 - 500,
         print_message: bool = False,
     ) -> str:
         """Answers a query using GPT and a dataframe of relevant texts and embeddings."""
-        message = query_message(query, df, model=model, token_budget=token_budget)
+        message = self.query_message(query, df, model=model, token_budget=token_budget)
         if print_message:
             print(message)
         messages = [
@@ -193,5 +200,5 @@ class ActionRestaurantsDetail(Action):
 
         previous_results = tracker.get_slot("results")
         question = tracker.latest_message["text"]
-        answer = chatGPT.ask(previous_results + "\n\n" + question)
+        answer = chatGPT.ask(previous_results + "\n\n" + question, hotel_api.db)
         dispatcher.utter_message(text = answer)
