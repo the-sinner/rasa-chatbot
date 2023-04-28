@@ -26,13 +26,13 @@
 #
 #         return []
 
+# import os
 import ast
-import openai 
+import openai
 import tiktoken
-import os
 from typing import Any, Text, Dict, List
 import pandas as pd
-import requests
+# import requests
 from rasa_sdk import Action, Tracker
 from rasa_sdk.executor import CollectingDispatcher
 from rasa_sdk.events import SlotSet
@@ -51,10 +51,10 @@ class HotelAPI(object):
     def fetch_hotels(self):
         return self.db.head()
 
-    def format_hotels(self, df, header=True) -> Text:        
-        data = {'hotels': ['Ashok Hotel', 'Ginger Hotel', 'The Lalit']}
+    def format_hotels(self, df=None, header=True) -> Text:        
+        # data = {'Hotels': ['Ashok Hotel', 'Ginger Hotel', 'The Lalit']}
         data = {
-            'hotels': ['Ashok Hotel', 'Ginger Hotel', 'The Lalit'],
+            'Hotels': ['Ashok Hotel', 'Ginger Hotel', 'The Lalit'],
             'ratings': [4.5, 3.2, 4.3],
         }
         df = pd.DataFrame(data)
@@ -184,13 +184,15 @@ class ActionShowHotels(Action):
 
         hotels = hotel_api.fetch_hotels()
         results = hotel_api.format_hotels(hotels)
-        readable = hotel_api.format_hotels(hotels[['Hotels']], header=False)
-        dispatcher.utter_message(text=f"Here are some restaurants:\n\n{readable}")
+        print(results)
+        # readable = hotel_api.format_hotels(hotels['Hotels'], header=False)
+        # print(readable)
+        dispatcher.utter_message(text=f"Here are some restaurants:\n\n{results}")
 
         return [SlotSet("results", results)]
 
 
-class ActionRestaurantsDetail(Action):
+class ActionHotelsDetail(Action):
     def name(self) -> Text:
         return "action_hotels_detail"
 
@@ -198,7 +200,8 @@ class ActionRestaurantsDetail(Action):
             tracker: Tracker,
             domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
 
-        previous_results = tracker.get_slot("results")
+        # previous_results = tracker.get_slot("results")
+        previous_results = hotel_api.format_hotels()
         question = tracker.latest_message["text"]
         answer = chatGPT.ask(previous_results + "\n\n" + question, hotel_api.db)
         dispatcher.utter_message(text = answer)

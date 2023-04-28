@@ -1,5 +1,12 @@
 version: "3.1"
 
+slots:
+  results:
+    type: text
+    mappings:
+    - type: custom
+      action: action_show_hotels
+
 intents:
   - greet
   - goodbye
