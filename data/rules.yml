@@ -2,6 +2,11 @@ version: "3.1"
 
 rules:
 
+- rule: ask chatgpt whenever it is out-of-scope
+  steps:
+  - intent: ask_chatgpt
+  - action: action_ask_chatgpt
+
 - rule: Say goodbye anytime the user says goodbye
   steps:
   - intent: goodbye
@@ -11,14 +16,3 @@ rules:
   steps:
   - intent: bot_challenge
   - action: utter_iamabot
-
-- rule: show hotels
-  steps:
-  - intent: hotels
-  - action: action_show_hotels
-
-- rule: show detail
-  steps:
-  - intent: detail
-  - action: action_hotels_detail
-  

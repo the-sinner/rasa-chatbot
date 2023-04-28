@@ -17,16 +17,12 @@ nlu:
     - goodevening
     - good afternoon
 
-- intent: hotels
+- intent: ask_chatgpt
   examples: |
     - show me places to stay in new delhi
     - I'm looking for a great hotel
     - show me hotels
-  
-- intent: detail
-  examples: |
-    - which of them is good?
-    - which is the best one?
+    - which one is the best one
 
 - intent: goodbye
   examples: |
