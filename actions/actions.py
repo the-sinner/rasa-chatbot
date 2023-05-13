@@ -41,7 +41,7 @@ from scipy import spatial  # for calculating vector similarities for search
 # models
 EMBEDDING_MODEL = "text-embedding-ada-002"
 GPT_MODEL = "gpt-3.5-turbo"
-openai.api_key = "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"
+openai.api_key = "sk-"
 
 # class HotelAPI(object):
 
@@ -70,7 +70,7 @@ class ChatGPT(object):
         self.model = "gpt-3.5-turbo"
         self.headers={
             "Content-Type": "application/json",
-            "Authorization": "Bearer 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"
+            "Authorization": "Bearer sk-"
         }
         # f"{os.getenv('OPENAI_API_KEY')}"
         self.prompt = "Answer the following question, based on the data shown. " \
